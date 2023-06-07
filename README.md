@@ -3,7 +3,7 @@ The aiming dot game is based on the user hitting the shoot button when the blue 
 
 Inputs:
 | Left button: | Shoot |
-| Right button: | Change direction |
+\n| Right button: | Change direction |
 | Switch: | On/off also serves as game reset |
 | Accelerometer: | Detects how unsteady the user is |
 | Mic: | Detects noise |
