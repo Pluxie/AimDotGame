@@ -3,12 +3,6 @@
 
 #include <Adafruit_CircuitPlayground.h>
 #include <AsyncDelay.h>
-#include <iostream>
-using namespace std;
-
-long randNumber;
-
-int gameToggle;
 
 // scoreboard
 int hitsCur;
@@ -38,10 +32,9 @@ int directionAim;
 int aimVel;
 int tarVel;
 
-// upon resolution, set the variable for new position which will be updated to the LEDs during the position engine, then take sensors to calculate next velocity set/start that delay. Delays should not go below 10ms
+// upon resolution of these delays, calculate new position variables which will be updated to the LEDs during the position engine, then take sensors to calculate next velocity set/start that delay. Delays should not go below 10ms
 AsyncDelay delay_aim;
 AsyncDelay delay_target;
-
 
 // interrupt settup
 const byte switchPin = 7;
@@ -52,14 +45,11 @@ volatile bool intRBFlag = 1;
 const byte lButtonPin = 5;
 volatile bool intLBFlag = 1;
 
-
 // Music variables
 float midi[127];
 int A_four = 440;  // a is 440 hz...
 // Arrays to store Scale MIDI pitch sequence
 int c_major[8] = { 60, 62, 64, 65, 67, 69, 71, 72 };  // c_major scale on C4
-
-
 
 void setup() {
   // setup basics
@@ -74,22 +64,15 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(rButtonPin), rBLink, RISING);
   pinMode(lButtonPin, INPUT_PULLDOWN);
   attachInterrupt(digitalPinToInterrupt(lButtonPin), lBLink, RISING);
-  // Serial.println("init test");
 
+  // Set flags to current pin state since switch can be toggled on initialization
   intSFlag = digitalRead(switchPin);
   intRBFlag = digitalRead(rButtonPin);
   intLBFlag = digitalRead(lButtonPin);
   switchToggle = digitalRead(switchPin);
 
-  aimCount = 3;
-  tarCount = 7;
-  aimMod = translateTen(aimCount);
-  tarMod = translateTen(tarCount);
-  // delay_sense.start(2000, AsyncDelay::MILLIS);
-  // startUpGame();
-  directionAim = 1;
+  // Start
   startUpGame();
-  
 }
 
 void loop() {
@@ -116,28 +99,23 @@ void loop() {
       else {
         effectLoss();
       }
-      // effectLoss();
     }
     if (intLBFlag == 1) {
       intLBFlag = 0;
       if (directionAim == 1) {
         directionAim = -1;
-        
       }
       else if (directionAim == -1) {
         directionAim = 1;
       }
     }
     
-    // if (intRBFlag == 1) {
-    //   intRBFlag = 0;
+    // Run calculations for linear to circular position
     aimMod = translateTen(aimCount);
     tarMod = translateTen(tarCount);
     tarLMod = translateTen(tarCount-1);
     tarRMod = translateTen(tarCount+1);
-    // aimCount++;
-    // }
-
+    
     // Position engine
     for (int i = 0; i < 10; ++i) {
       if (i==aimMod) {
@@ -180,8 +158,8 @@ void loop() {
       // Serial.println(tarVel);
       delay_target.start(tarVel, AsyncDelay::MILLIS);
     }
-    results =( "");
-    results += ("\n\nSession High Score: ");
+    results =("");
+    results += ("\n\n\nSession High Score: ");
     results += (hitsMax);
     results += ("\n     Current Score: ");
     results += (hitsCur);
@@ -191,7 +169,6 @@ void loop() {
 }
 
 
-
 // Start of functions
 
 void setColor(int color, int ccolor) {
@@ -199,6 +176,8 @@ void setColor(int color, int ccolor) {
     CircuitPlayground.setPixelColor(i, color, color, ccolor);
   }
 }
+
+// Abstracted way to set all leds to same color
 void ko(int numOne, int numTwo, int numThree) {
   for (int i = 0; i < 10; ++i) {
     CircuitPlayground.setPixelColor(i, numOne, numTwo, numThree);
@@ -236,6 +215,7 @@ void lBLink() {
   // Serial.println("left button trip");
 }
 
+// Random brightness with certain colors
 int graySync;
 void sparkle(int decideC) {
   // Make an offset based on the current millisecond count scaled by the current speed.
@@ -248,6 +228,8 @@ void sparkle(int decideC) {
     CircuitPlayground.setPixelColor(i, graySync, graySync * decideC, graySync * decideC);
   }
 }
+
+// Set of outputs that play on hit/miss
 void effectWin(int pointCount) {
   sparkle(1);
   noiseIsGood();
@@ -274,9 +256,10 @@ void effectLoss() {
   startUpGame();
   intRBFlag = 0;
 }
+
+// Function that initializes all variables
 void startUpGame() {
   ko(0,0,0);
-  gameToggle = 0;
   delay_target.expire();
   delay_aim.expire();
   
@@ -287,6 +270,7 @@ void startUpGame() {
   tarMod = translateTen(tarCount);
   tarLMod = translateTen(tarCount-1);
   tarRMod = translateTen(tarCount+1);
+  directionAim = 1;
 
   // set gamestate
   hitsCur = 0;
@@ -317,8 +301,6 @@ void reCalcAcc() {
     accRoCount = 0;
   }
   avgAccValue=accRoTotal/4;
-  // Serial.println("avgacc");
-  // Serial.println(avgAccValue);
 }
 int micRoCount = 0;
 int micRoTotal = 0;
@@ -335,8 +317,4 @@ void reCalcMic() {
     micRoCount = 0;
   }
   avgMicValue=micRoTotal/4;
-  // Serial.println("avgmic");
-  // Serial.println(avgMicValue);
 }
-
-
